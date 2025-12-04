@@ -24,7 +24,7 @@ RUN pnpm build
 FROM base AS backend-deps
 WORKDIR /app/backend
 COPY backend/package*.json ./
-RUN --mount=type=cache,id=npm,target=/root/.npm npm ci --omit=dev
+RUN --mount=type=cache,id=npm,target=/root/.npm npm install --omit=dev
 
 # --- Estágio de Build do Backend (se houver) ---
 FROM backend-deps AS backend-source
