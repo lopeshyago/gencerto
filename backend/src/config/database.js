@@ -3,6 +3,7 @@ require('dotenv').config();
 
 // Permite usar DATABASE_URL (ex.: render, railway, supabase) ou campos separados
 const databaseUrl = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
+const useSSL = (process.env.DB_SSL || '').toLowerCase() === 'true' || (databaseUrl || '').includes('supabase.co');
 
 const sequelize = databaseUrl
   ? new Sequelize(databaseUrl, {
@@ -10,6 +11,7 @@ const sequelize = databaseUrl
       logging: process.env.NODE_ENV === 'development' ? console.log : false,
       pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
       define: { timestamps: true, underscored: true, freezeTableName: true },
+      dialectOptions: useSSL ? { ssl: { require: true, rejectUnauthorized: false } } : {},
     })
   : new Sequelize(
       process.env.DB_NAME || 'genesix_db',
@@ -22,6 +24,7 @@ const sequelize = databaseUrl
         logging: process.env.NODE_ENV === 'development' ? console.log : false,
         pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
         define: { timestamps: true, underscored: true, freezeTableName: true },
+        dialectOptions: useSSL ? { ssl: { require: true, rejectUnauthorized: false } } : {},
       }
     );
 
