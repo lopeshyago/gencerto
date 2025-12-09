@@ -27,7 +27,7 @@ import {
   Settings as SettingsIcon,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { authService } from "../services/api";
+import { authService, userService } from "../services/api";
 
 const EmptyState = ({ title, description }) => (
   <Card className="border-dashed border-gray-200">
@@ -45,6 +45,7 @@ const UserProfilePage = () => {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const [userData, setUserData] = useState({
     name: "",
@@ -64,6 +65,12 @@ const UserProfilePage = () => {
     slack: false,
     discord: false,
   });
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    role: "",
+  });
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -83,6 +90,8 @@ const UserProfilePage = () => {
         const settings = apiUser.settings || {};
 
         setUserData({
+          // id salvo para updates
+          id: apiUser.id,
           name: apiUser.nome || "",
           email: apiUser.email || "",
           role: profile.cargo || profile.area_atuacao || "Usuário",
@@ -103,6 +112,12 @@ const UserProfilePage = () => {
 
         setTwoFactorEnabled(settings.dois_fatores ?? false);
         setDarkMode(settings.tema === "dark");
+        setEditForm({
+          name: apiUser.nome || "",
+          email: apiUser.email || "",
+          role: profile.cargo || profile.area_atuacao || "",
+        });
+        setUserId(apiUser.id);
       } catch (err) {
         console.error("Erro ao carregar perfil:", err);
         setError(err?.message || "Erro ao carregar seu perfil.");
@@ -137,6 +152,40 @@ const UserProfilePage = () => {
         return "bg-yellow-100 text-yellow-800 border-yellow-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const handleSave = async () => {
+    if (!userId) return;
+    try {
+      setSaving(true);
+      setError("");
+
+      // Atualiza dados básicos
+      await userService.updateProfile(userId, {
+        nome: editForm.name,
+        email: editForm.email,
+      });
+
+      // Atualiza perfil detalhado
+      await userService.updateDetailedProfile(userId, {
+        cargo: editForm.role,
+        area_atuacao: editForm.role,
+      });
+
+      // Refresca dados visíveis
+      setUserData((prev) => ({
+        ...prev,
+        name: editForm.name,
+        email: editForm.email,
+        role: editForm.role || "Usuário",
+      }));
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Erro ao salvar perfil:", err);
+      setError(err?.data?.error || err?.message || "Erro ao salvar perfil.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -197,16 +246,57 @@ const UserProfilePage = () => {
                   {userData.timezone}
                 </span>
               </div>
-            </div>
+              </div>
 
             <div className="flex flex-col gap-2">
-              <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>
-                Editar perfil
+              <Button variant="outline" onClick={() => setIsEditing((prev) => !prev)}>
+                {isEditing ? "Cancelar" : "Editar perfil"}
               </Button>
+              {isEditing && (
+                <Button onClick={handleSave} disabled={saving}>
+                  {saving ? "Salvando..." : "Salvar"}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {isEditing && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Editar dados</CardTitle>
+            <CardDescription>Atualize suas informações básicas</CardDescription>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input
+                value={editForm.name}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Seu nome"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
+                placeholder="seu@email.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Cargo / Área de atuação</Label>
+              <Input
+                value={editForm.role}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, role: e.target.value }))}
+                placeholder="Ex.: Product Manager"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Preferências */}
       <div className="grid md:grid-cols-3 gap-4">
