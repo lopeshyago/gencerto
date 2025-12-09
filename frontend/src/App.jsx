@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Header from "./components/Header";
-import LeftSidebar from "./components/LeftSidebar";\nimport { Toaster } from "sonner";
+import LeftSidebar from "./components/LeftSidebar";
+import { Toaster } from "sonner";
 import RightSidebar from "./components/RightSidebar";
 import Dashboard from "./components/Dashboard";
 import Wizard from "./components/Wizard.jsx";
@@ -29,7 +30,8 @@ import CriteriaMetricsPage from "./components/CriteriaMetricsPage";
 import RoadmapBacklogPage from "./components/RoadmapBacklogPage";
 import PrototypePage from "./components/PrototypePage";
 import PRDFinalPage from "./components/PRDFinalPage";
-import LaunchPage from "./components/LaunchPage";\nimport ContextoProblemaPag from "./components/ContextoProblemaPag";
+import LaunchPage from "./components/LaunchPage";
+import ContextoProblemaPag from "./components/ContextoProblemaPag";
 
 const stepData = {
   "contexto-problema": {
@@ -820,5 +822,4 @@ function App() {
 }
 
 export default App;
-
 
