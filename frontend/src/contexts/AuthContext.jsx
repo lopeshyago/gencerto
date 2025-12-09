@@ -24,6 +24,24 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
+  // Captura tokens dos callbacks OAuth (?token=...&refresh_token=...) e conclui o login
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const token = searchParams.get('token');
+    const refreshToken = searchParams.get('refresh_token');
+
+    if (token && refreshToken) {
+      TokenManager.setToken(token);
+      TokenManager.setRefreshToken(refreshToken);
+
+      const newUrl = `${window.location.origin}${window.location.pathname}${window.location.hash || '#dashboard'}`;
+      window.history.replaceState({}, document.title, newUrl);
+      window.location.hash = 'dashboard';
+      checkAuth();
+    }
+  }, []);
+
   const checkAuth = async () => {
     try {
       setIsLoading(true);

@@ -4,8 +4,7 @@
 **Base URL:** `http://localhost:3001/api`  
 **Autenticação:** Bearer Token (JWT)
 
----
-
+---sss
 ## 📋 Índice
 
 1. [Autenticação](#autenticação)
